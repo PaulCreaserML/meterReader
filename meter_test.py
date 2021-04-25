@@ -47,7 +47,7 @@ def model_test( csv, model_file ):
 
     for index, row in df.iterrows():
         result = load_and_process( row['filename'] , input_shape, row, model,  column_list )
-        print( "File ", row['filename'], " Result ", result, " - ",  ( result*(90+2) -1 ) )
+        print( "File ", row['filename'], " Raw Result ", result, " - Degrees ",  ( result*90  ) )
 
 
 def main( argv ):
