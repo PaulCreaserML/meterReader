@@ -18,19 +18,19 @@ img_width, img_height = 100, 100
 def model_build( img_height, img_width, depth=1 ):
     # Model build
     input_img = Input( shape=( img_height, img_width, depth ) )
-    x = Conv2D( 60, (5, 5), use_bias=False, activation='relu')( input_img )
+    x = Conv2D( 90, (3, 3), use_bias=False, activation='relu')( input_img )
     x = MaxPooling2D( (2, 2) )( x )
 
     x = Conv2D( 60, (3, 3), use_bias=False, activation='relu')( x )
     x = MaxPooling2D( (2, 2) )( x )
 
-    x = Conv2D( 30, (3, 3), use_bias=False, activation='relu' )( x )
+    x = Conv2D( 45, (3, 3), use_bias=False, activation='relu' )( x )
     x = MaxPooling2D( (2, 2) )( x )
 
     # Minute hand features feature1_3x3 ) #
     x = Flatten()( x )
     x = Dense( 30, activation='relu')( x )
-    # x  = tensorflow.keras.layers.Dropout(.01)( x )
+    x  = tensorflow.keras.layers.Dropout(.01)( x )
     #
     x = Dense( 15, activation='relu')( x )
     # Last
