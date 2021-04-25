@@ -34,7 +34,8 @@ def model_build( img_height, img_width, depth=1 ):
     #
     x  = Dense(16, activation='relu')( x )
     # Last
-    output = Dense(1, activation='sigmoid')( x )
+    x = Dense(1)( x )
+    output = LeakyReLU(alpha=0.1)(x)
     return  Model( input_img, output )
 
 def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir=None ):
@@ -65,7 +66,7 @@ def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
     print("Column list ", column_list )
 
     model = model_build( img_height, img_width, depth=1 )
-    model.compile(optimizer='adam', loss='mse', metrics =['mae'])
+    model.compile(optimizer='adam', loss='mse', metrics =['mae', "accuracy"])
     model.summary()
 
     # Image preprocessing
