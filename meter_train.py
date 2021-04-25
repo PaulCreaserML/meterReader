@@ -32,7 +32,7 @@ def model_build( img_height, img_width, depth=1 ):
     x = Dense( 30, activation='relu')( x )
     # x  = tensorflow.keras.layers.Dropout(.01)( x )
     #
-    x = Dense( 5, activation='relu')( x )
+    x = Dense( 15, activation='relu')( x )
     # Last
     x = Dense(1)( x )
     output = LeakyReLU(alpha=0.1)(x)
@@ -73,10 +73,10 @@ def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
     train_datagen = ImageDataGenerator(
         rescale = 1. / 255,
         horizontal_flip = False,
-        #brightness_range=[0.8,1.2],
-        #zoom_range=[0.95, 1.05],
-        #height_shift_range=[-2, 2],
-        #width_shift_range=[-2, 2]
+        brightness_range=[0.8,1.2],
+        zoom_range=[0.95, 1.05],
+        height_shift_range=[-2, 2],
+        width_shift_range=[-2, 2]
         )
 
     test_datagen = ImageDataGenerator(
@@ -159,7 +159,7 @@ def main( argv ):
     print(" --------------------------------------------------------------" )
     print(" Train csv file ", train_csv, " Test CSV ", test_csv, " Model ", model_file  )
     print(" --------------------------------------------------------------" )
-    meter_train( train_csv, test_csv, epochs=120, batch_size=8, saved_model=model_file, checkpoint_dir=checkpoint_dir )
+    meter_train( train_csv, test_csv, epochs=120, batch_size=16, saved_model=model_file, checkpoint_dir=checkpoint_dir )
 
 
 if __name__ == "__main__":
