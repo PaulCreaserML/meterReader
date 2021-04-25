@@ -13,42 +13,29 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-img_width, img_height = 144, 144
+img_width, img_height = 100, 100
 
-
-def model_build( img_height, img_width, depth=3 ):
+def model_build( img_height, img_width, depth=1 ):
     # Model build
-    input_shape  = ( img_height, img_width, depth )
-    input_img    = Input( shape=input_shape )
+    input_img = Input( shape=( img_height, img_width, depth ) )
+    x = Conv2D( 64, (5, 5), use_bias=False, activation='relu')( input_img )
+    x = MaxPooling2D( (2, 2) )( x )
 
-    feature_1    = Conv2D(64, (5, 5), strides=(2, 2),  use_bias=False, activation='relu')( input_img )
-    feature_1_scaled = MaxPooling2D( (2, 2) )( feature_1  )
+    x = Conv2D(64, (3, 3), use_bias=False, activation='relu')( x )
+    x = MaxPooling2D( (2, 2) )( x )
 
-    feature_2    = Conv2D(96, (3, 3), use_bias=False, activation='relu')( feature_1_scaled)
-    feature_2_scaled = MaxPooling2D( (2, 2) )( feature_2 )
-
-    feature_3x3    = Conv2D(96, (3, 3), use_bias=False, activation='relu', padding='same')( feature_2_scaled )
-    feature_5x5    = Conv2D(12, (5, 5), use_bias=False, activation='relu', padding='same')( feature_2_scaled )
-    skip1          = concatenate( [ feature_3x3, feature_5x5 ])
-    skip1_scaled   = MaxPooling2D( (2, 2) )( skip1 )
-
-    feature1_3x3   = Conv2D(72, (3, 3), use_bias=False, activation='relu', padding='same')( skip1_scaled )
-    #feature1_5x5   = Conv2D(64, (5,5), use_bias=False, activation='relu', padding='same')( skip1_scaled )
-    skip2_scaled   = MaxPooling2D( (2, 2) )( feature1_3x3 )
+    x = Conv2D( 32, (3, 3), use_bias=False, activation='relu' )( x )
+    x = MaxPooling2D( (2, 2) )( x )
 
     # Minute hand features feature1_3x3 ) #
-    flat2   = Flatten()(  skip2_scaled )
-
-    needle_b1  = Dense(64, activation='relu')(flat2)
-    needle_1   = tensorflow.keras.layers.Dropout(.01)(needle_b1)
-
+    x  = Flatten()( x )
+    x  = Dense(32, activation='relu')( x )
+    # x  = tensorflow.keras.layers.Dropout(.01)( x )
     #
-    needle_2  = Dense(32, activation='relu')(needle_1)
-
+    x  = Dense(16, activation='relu')( x )
     # Last
-    output     = Dense(2, activation='tanh')(needle_2)
-
-    return  Model( [ input_img ], outputs = output )
+    output = Dense(1, activation='sigmoid')( x )
+    return  Model( input_img, output )
 
 def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, checkpoint_dir=None ):
     df      = pd.read_csv(csv, sep=',')
@@ -63,6 +50,7 @@ def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
     for col in df.columns:
         if index != 0:
             column_list.append( col )
+            print("Col ", col )
         index+=1
 
     # Test Data
@@ -73,29 +61,32 @@ def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
             test_column_list.append( col )
         index+=1
 
-    model =  model_build( img_height, img_width, depth=1 )
+    print("Datafrrame ",  df )
+    print("Column list ", column_list )
 
-    model.compile(optimizer='adam', loss='mse', metrics =['accuracy'])
-    print( model.summary() )
+    model = model_build( img_height, img_width, depth=1 )
+    model.compile(optimizer='adam', loss='mse', metrics =['mae'])
+    model.summary()
 
     # Image preprocessing
     train_datagen = ImageDataGenerator(
         rescale = 1. / 255,
         horizontal_flip = False,
-        brightness_range=[0.8,1.2],
-        zoom_range=[0.95, 1.05],
-        # shear_range=0.01,
-        height_shift_range=[-2, 2],
-        width_shift_range=[-2, 2]#,
+        #brightness_range=[0.8,1.2],
+        #zoom_range=[0.95, 1.05],
+        #height_shift_range=[-2, 2],
+        #width_shift_range=[-2, 2]
         )
 
-    test_datagen = ImageDataGenerator(rescale = 1. / 255
-        )
+    test_datagen = ImageDataGenerator(
+        rescale = 1. / 255,
+        horizontal_flip = False
+    )
 
     # Training dataset
     train_generator = train_datagen.flow_from_dataframe(
         dataframe=df,
-        x_col="filename",
+        x_col='filename',
         color_mode='grayscale',
         y_col= column_list,
         target_size =( img_height, img_width ),
@@ -106,7 +97,7 @@ def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
     # Validation dataset
     validation_generator = test_datagen.flow_from_dataframe(
         dataframe=test_df,
-        x_col="filename",
+        x_col='filename',
         color_mode='grayscale',
         y_col= test_column_list,
         target_size =( img_height, img_width ),
@@ -167,7 +158,7 @@ def main( argv ):
     print(" --------------------------------------------------------------" )
     print(" Train csv file ", train_csv, " Test CSV ", test_csv, " Model ", model_file  )
     print(" --------------------------------------------------------------" )
-    meter_train( train_csv, test_csv, epochs=120, batch_size=16, saved_model=model_file, checkpoint_dir=checkpoint_dir )
+    meter_train( train_csv, test_csv, epochs=120, batch_size=8, saved_model=model_file, checkpoint_dir=checkpoint_dir )
 
 
 if __name__ == "__main__":
