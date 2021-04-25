@@ -18,21 +18,21 @@ img_width, img_height = 100, 100
 def model_build( img_height, img_width, depth=1 ):
     # Model build
     input_img = Input( shape=( img_height, img_width, depth ) )
-    x = Conv2D( 64, (5, 5), use_bias=False, activation='relu')( input_img )
+    x = Conv2D( 60, (5, 5), use_bias=False, activation='relu')( input_img )
     x = MaxPooling2D( (2, 2) )( x )
 
-    x = Conv2D(64, (3, 3), use_bias=False, activation='relu')( x )
+    x = Conv2D( 60, (3, 3), use_bias=False, activation='relu')( x )
     x = MaxPooling2D( (2, 2) )( x )
 
-    x = Conv2D( 32, (3, 3), use_bias=False, activation='relu' )( x )
+    x = Conv2D( 30, (3, 3), use_bias=False, activation='relu' )( x )
     x = MaxPooling2D( (2, 2) )( x )
 
     # Minute hand features feature1_3x3 ) #
-    x  = Flatten()( x )
-    x  = Dense(32, activation='relu')( x )
+    x = Flatten()( x )
+    x = Dense( 30, activation='relu')( x )
     # x  = tensorflow.keras.layers.Dropout(.01)( x )
     #
-    x  = Dense(16, activation='relu')( x )
+    x = Dense( 5, activation='relu')( x )
     # Last
     x = Dense(1)( x )
     output = LeakyReLU(alpha=0.1)(x)
@@ -66,7 +66,7 @@ def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
     print("Column list ", column_list )
 
     model = model_build( img_height, img_width, depth=1 )
-    model.compile(optimizer='adam', loss='mse', metrics =['mae', "accuracy"])
+    model.compile(optimizer='adam', loss='mse', metrics =['mae'])
     model.summary()
 
     # Image preprocessing
@@ -108,8 +108,8 @@ def meter_train( csv, test_csv, epochs=200, batch_size=2, saved_model=None, chec
     model_checkpoint_callback = tensorflow.keras.callbacks.ModelCheckpoint(
         filepath=checkpoint_dir,
         save_weights_only=False,
-        monitor='val_accuracy',
-        mode='max',
+        monitor='val_mae',
+        mode='min',
         save_best_only=True
     )
 
